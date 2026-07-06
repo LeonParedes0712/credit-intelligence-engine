@@ -1,580 +1,243 @@
-\# Credit Intelligence Engine
+# Credit Intelligence Engine
 
+Credit Intelligence Engine is an interpretable credit risk decision system built with machine learning, credit scoring, business rules, explainability, threshold simulation, expected loss estimation, and an interactive Streamlit app.
 
+The goal of this project is not only to predict credit default, but to transform model predictions into actionable lending decisions.
 
-Credit Intelligence Engine is an interpretable credit risk decision system built with machine learning, business rules, credit scoring, explainability, and financial risk simulation.
-
-
-
-The goal of this project is not only to train a default prediction model, but to build an end-to-end credit decision engine that converts model outputs into actionable lending decisions.
-
-
-
-\## Project Overview
-
-
-
-This project uses the Home Credit Default Risk dataset to predict the probability that a credit applicant will default.
-
-
+## Project Overview
 
 The engine performs the following steps:
 
+1. Predicts probability of default.
+2. Converts probability of default into a 300–850 credit score.
+3. Assigns risk tiers.
+4. Applies business rules to adjust decisions.
+5. Explains model behavior using SHAP.
+6. Simulates approval and rejection thresholds.
+7. Estimates expected loss and expected profit.
+8. Provides an interactive Streamlit app for applicant simulation.
 
+## Dataset
 
-1\. Predicts probability of default using machine learning.
+Dataset: Home Credit Default Risk from Kaggle.
 
-2\. Converts default probability into a 300–850 credit score.
-
-3\. Assigns risk tiers.
-
-4\. Applies business rules to adjust decisions.
-
-5\. Explains model behavior using SHAP.
-
-6\. Simulates approval thresholds.
-
-7\. Estimates expected loss and expected profit.
-
-8\. Provides an interactive Streamlit app for applicant simulation.
-
-
-
-\## Dataset
-
-
-
-Dataset used:
-
-
-
-Home Credit Default Risk - Kaggle
-
-
-
-Main file used in the current version:
-
-
+Main file used:
 
 ```text
-
-data/application\_train.csv
-
-
+data/application_train.csv
 
 Target variable:
 
-
-
 TARGET
-
-
 
 Where:
 
-
-
 0 = no default
-
 1 = default
-
-
 
 The dataset is not included in this repository because of its size. The data/ folder is ignored by Git.
 
-
-
 Repository Structure
-
 credit-intelligence-engine/
-
 │
-
 ├── app/
-
-│   └── streamlit\_app.py
-
+│   └── streamlit_app.py
 │
-
-├── data/
-
-│   └── application\_train.csv          # Not tracked by Git
-
+├── data/                         # Not tracked by Git
+│   └── application_train.csv
 │
-
 ├── notebooks/
-
-│   ├── 01\_eda\_baseline.ipynb
-
-│   ├── 02\_xgboost\_model.ipynb
-
-│   ├── 03\_credit\_score\_engine.ipynb
-
-│   ├── 04\_business\_rules\_engine.ipynb
-
-│   ├── 05\_shap\_explainability.ipynb
-
-│   ├── 06\_model\_calibration\_thresholds.ipynb
-
-│   └── 07\_expected\_loss\_profit.ipynb
-
+│   ├── 01_eda_baseline.ipynb
+│   ├── 02_xgboost_model.ipynb
+│   ├── 03_credit_score_engine.ipynb
+│   ├── 04_business_rules_engine.ipynb
+│   ├── 05_shap_explainability.ipynb
+│   ├── 06_model_calibration_thresholds.ipynb
+│   └── 07_expected_loss_profit.ipynb
 │
-
-├── outputs/
-
-│   ├── xgboost\_model.pkl              # Not tracked by Git
-
-│   └── generated result files          # Not tracked by Git
-
+├── outputs/                      # Not tracked by Git
+│   └── xgboost_model.pkl
 │
-
 ├── src/
-
 ├── requirements.txt
-
 ├── .gitignore
-
 └── README.md
+Key Results
+Component	Result
+Logistic Regression ROC-AUC	0.6238
+XGBoost ROC-AUC	0.7598
+Recommended approval threshold	PD <= 30%
+Recommended rejection threshold	PD >= 50%
+Approved default rate	~2.2%
+LGD assumption	45%
+Modeling Pipeline
+1. Baseline Model
 
-Methodology
-
-1\. Exploratory Data Analysis and Baseline Model
-
-
-
-The first notebook explores the application dataset, checks missing values, reviews target imbalance, and trains a Logistic Regression baseline.
-
-
-
-Baseline model:
-
-
-
-Logistic Regression + preprocessing pipeline
-
-
+A Logistic Regression baseline was trained using preprocessing pipelines for numerical and categorical variables.
 
 Baseline ROC-AUC:
 
-
-
 0.6238
+2. XGBoost Model
 
-2\. XGBoost Credit Risk Model
-
-
-
-A stronger tree-based model was trained using XGBoost.
-
-
-
-The model uses:
-
-
-
-Median imputation for numerical variables
-
-Most frequent imputation for categorical variables
-
-One-hot encoding
-
-XGBoost classifier
-
-Class imbalance handling with scale\_pos\_weight
-
-
+An XGBoost model was trained to improve predictive performance.
 
 XGBoost ROC-AUC:
 
-
-
 0.7598
 
+This model became the main model used by the engine.
 
+3. Credit Score Engine
 
-This significantly improved performance compared to the Logistic Regression baseline.
-
-
-
-3\. Credit Score Engine
-
-
-
-Predicted default probabilities are converted into a credit score from 300 to 850.
-
-
+The predicted probability of default is converted into a credit score between 300 and 850.
 
 Higher default probability produces a lower credit score.
 
-
-
-Example logic:
-
-
-
-Low PD  -> Higher score
-
-High PD -> Lower score
-
-
-
 Risk tiers:
 
-
-
 750+     Very Low Risk
-
 700-749  Low Risk
-
 650-699  Medium Risk
-
 600-649  High Risk
-
 <600     Very High Risk
+4. Business Rules
 
-4\. Business Rules Layer
-
-
-
-A business rules layer was added on top of the model decision.
-
-
+The engine applies heuristic business rules on top of the model decision.
 
 Rules include:
 
-
-
 Very low credit score
-
 High predicted default probability
-
 High credit amount relative to income
-
 High annuity burden relative to income
-
 Low external risk score
-
 Short employment history
 
-
-
-This allows the engine to produce both a final decision and business-readable reasons.
-
-
-
-Decision outputs:
-
-
+Final decisions:
 
 Approve
-
 Manual Review
-
 Reject
-
-5\. SHAP Explainability
-
-
+5. SHAP Explainability
 
 SHAP was used to explain the XGBoost model.
 
-
-
 The project includes:
 
-
-
 Global feature importance
-
 SHAP summary plot
+Individual applicant waterfall explanation
+6. Threshold Simulation
 
-Individual applicant explanation with waterfall plot
+Different approval and rejection thresholds were simulated.
 
-
-
-This improves interpretability by showing which variables increase or decrease predicted default risk.
-
-
-
-6\. Calibration and Threshold Simulation
-
-
-
-The model was evaluated using:
-
-
-
-ROC-AUC
-
-Brier score
-
-Calibration curve
-
-Threshold simulation
-
-
-
-A recommended initial policy was selected:
-
-
+Recommended policy:
 
 Approve if PD <= 30%
-
 Manual Review if 30% < PD < 50%
-
 Reject if PD >= 50%
+7. Expected Loss and Profit Simulation
 
-
-
-This policy produced approximately:
-
-
-
-Approval rate: 34.6%
-
-Approved default rate: 2.2%
-
-7\. Expected Loss and Profit Simulation
-
-
-
-A financial risk layer was added using:
-
-
+Expected loss was calculated as:
 
 Expected Loss = PD × LGD × EAD
 
-
-
 Where:
 
-
-
 PD  = Probability of Default
-
 LGD = Loss Given Default
-
 EAD = Exposure at Default
-
-
 
 In this project:
 
-
-
 LGD = 45%
-
-EAD = AMT\_CREDIT
-
-
+EAD = AMT_CREDIT
 
 Expected profit was estimated as:
 
-
-
 Expected Profit = Expected Interest - Expected Loss
-
-
-
-A sensitivity analysis was performed using different interest rate assumptions.
-
-
-
 Streamlit App
 
+The project includes an interactive Streamlit app.
 
-
-The project includes an interactive Streamlit app that allows users to simulate a credit application.
-
-
-
-The app outputs:
-
-
+The app allows users to modify applicant information and returns:
 
 Default probability
-
 Credit score
-
 Risk tier
-
-Final credit decision
-
+Final decision
 Expected interest
-
 Expected loss
-
 Expected profit
-
 Business rule reasons
-
 Applicant data used by the engine
 
+Run the app with:
 
+py -m streamlit run app/streamlit_app.py
 
-To run the app:
+Or on Linux/macOS:
 
-
-
-streamlit run app/streamlit\_app.py
-
-
-
-On Windows, if Streamlit is installed in the Python environment:
-
-
-
-py -m streamlit run app/streamlit\_app.py
-
+streamlit run app/streamlit_app.py
 Installation
-
-
 
 Clone the repository:
 
-
-
 git clone https://github.com/LeonParedes0712/credit-intelligence-engine.git
-
 cd credit-intelligence-engine
 
+Install dependencies:
 
+pip install -r requirements.txt
 
-Create a virtual environment.
-
-
-
-On Windows:
-
-
-
-py -m venv .venv
-
-.venv\\Scripts\\activate
+On Windows, this project was developed using:
 
 py -m pip install -r requirements.txt
-
-
-
-On Linux/macOS:
-
-
-
-python3 -m venv .venv
-
-source .venv/bin/activate
-
-python -m pip install -r requirements.txt
-
 Required Local Files
 
+Because data and trained model artifacts are not tracked by Git, the following files are required locally to run the full project:
 
+data/application_train.csv
+outputs/xgboost_model.pkl
 
-Because large data and model artifacts are not tracked by Git, the following files must exist locally to run the full project:
-
-
-
-data/application\_train.csv
-
-outputs/xgboost\_model.pkl
-
-
-
-The dataset can be downloaded from Kaggle:
-
-
-
-Home Credit Default Risk
-
-
+The dataset can be downloaded from Kaggle.
 
 The model file can be generated by running:
 
-
-
-notebooks/02\_xgboost\_model.ipynb
-
-Key Results
-
-Component	Result
-
-Logistic Regression ROC-AUC	0.6238
-
-XGBoost ROC-AUC	0.7598
-
-Recommended approval threshold	PD <= 30%
-
-Recommended reject threshold	PD >= 50%
-
-Approved default rate	\~2.2%
-
-LGD assumption	45%
-
+notebooks/02_xgboost_model.ipynb
 Technologies Used
-
 Python
-
 pandas
-
 NumPy
-
 scikit-learn
-
 XGBoost
-
 SHAP
-
 Streamlit
-
-Plotly
-
 Matplotlib
-
+Plotly
 Joblib
-
 Git / GitHub
-
 Project Status
 
+Completed:
 
-
-Current version includes:
-
-
-
-EDA and baseline model
-
+EDA
+Logistic Regression baseline
 XGBoost model
-
 Credit score conversion
-
 Risk tiers
-
 Business rules
-
 SHAP explainability
-
 Threshold simulation
+Expected loss simulation
+Profit sensitivity analysis
+Streamlit app
 
-Expected loss and profit simulation
+Future improvements:
 
-Interactive Streamlit app
-
-
-
-Possible future improvements:
-
-
-
-Use additional Home Credit tables for feature engineering
-
-Add probability calibration
-
-Improve UI design
-
+Add more feature engineering from secondary Home Credit tables
 Add SHAP explanations directly inside the Streamlit app
-
-Add model monitoring metrics
-
+Improve UI design
 Package reusable logic into src/
-
+Add model monitoring metrics
